@@ -56,14 +56,72 @@
       </div>
     </div>
   </div>
+  
+  <!-- 历史记录面板 -->
+  <div class="history-panel" :style="{height: panelHeight + 'px'}">
+    <div class="resize-handle"
+         @mousedown="isDragging = true"
+         @touchstart="isDragging = true"></div>
+    
+    <div class="history-header">
+      <h3>历史错误记录</h3>
+      <n-space>
+        <n-button size="small" @click="exportMistakes">导出</n-button>
+        <n-button size="small" @click="importMistakes">导入</n-button>
+      </n-space>
+    </div>
+    
+    <div class="history-content">
+      <n-card v-for="(mistake, index) in this.mistakeStore.getAll()"
+              :key="index" size="small">
+        <!-- 记录内容展示 -->
+        <div @click="retryMistake(index)" class="mistake-item">
+          <div class="mistake-row">
+            <div class="hand-display">
+              <pai-select v-for="(pai, i) in formatMistake(mistake).hand"
+                        :key="'hand-'+i" :name="pai" class="history-size"/>
+              <span class="plus">+</span>
+              <pai-select :name="formatMistake(mistake).agariPai" class="history-size"/>
+            </div>
+            <div v-if="formatMistake(mistake).furo.length > 0" class="furo-display">
+              <span>副露:</span>
+              <block-select v-for="(furo, i) in formatMistake(mistake).furo"
+                          :key="'furo-'+i" :type="furo.type" :name="furo.name" :red="furo.cnt" class="history-size"/>
+            </div>
+            <div class="dora-display">
+              <span>宝牌指示牌:</span>
+              <pai-select v-for="(pai, i) in formatMistake(mistake).dora"
+                        :key="'dora-'+i" :name="pai" class="history-size"/>
+              <pai-select v-for="(pai, i) in formatMistake(mistake).ura"
+                        :key="'dora-'+i" :name="pai" class="history-size"/>
+            </div>
+            <div class="info-display" v-if="formatMistake(mistake).info">
+              <span>和了情况:</span>
+              <div>{{ formatMistake(mistake).info }}</div>
+            </div>
+          </div>
+          <div class="answer-info">
+            <div>用户答案: {{ formatMistake(mistake).userAnswer }}</div>
+            <div>正确答案: {{ formatMistake(mistake).correctAnswer }}</div>
+            <div class="result-display">
+              {{ formatMistake(mistake).result }}
+            </div>
+            <div>时间: {{ formatMistake(mistake).timestamp }}</div>
+          </div>
+        </div>
+        <n-button size="tiny" @click="removeMistake(index)">删除</n-button>
+      </n-card>
+    </div>
+  </div>
 </template>
 
 <script>
   import PaiSelect from '@/components/PaiSelect.vue'
   import BlockSelect from '@/components/BlockSelect.vue'
-  import { NInput, NButton } from 'naive-ui'
+  import { NInput, NButton, NSpace, NCard } from 'naive-ui'
 
   import {ProblemGenerator} from '@/store/problem'
+  import mistakeStore from '@/store/mistake'
 import { CHIIHOU, HOUTEI_RAOYUI, FIELD_WEST, DOUBLE_RIICHI, CHANKAN, HAITEI_RAOYUE, RIICHI, SEAT_NORTH, SEAT_WEST, RON, RINNSHANN_KAIHOU, TENHOU, FIELD_SOUTH, SEAT_EAST, IPPATSU, TSUMO, FIELD_NORTH, FIELD_EAST, SEAT_SOUTH } from "@/store/types"
   import {test} from '@/store/util'
 
@@ -77,13 +135,16 @@ import { CHIIHOU, HOUTEI_RAOYUI, FIELD_WEST, DOUBLE_RIICHI, CHANKAN, HAITEI_RAOY
         ans: '',
         hintText:'输入答案',
         btnText:"确认",
+        panelHeight: 200, // 历史记录面板高度
+        isDragging: false, // 是否正在调整面板高度
+        mistakeStore // 将store作为data属性
       }
     },
     props:{
       rule: Object
     },
     components:{
-      PaiSelect,BlockSelect,NInput,NButton
+      PaiSelect, BlockSelect, NInput, NButton, NSpace, NCard
     },
     created(){
       this.newProblem()
@@ -91,7 +152,19 @@ import { CHIIHOU, HOUTEI_RAOYUI, FIELD_WEST, DOUBLE_RIICHI, CHANKAN, HAITEI_RAOY
     mounted() {
       //  监听键盘事件
       document.addEventListener('keydown', this.handleKeyDown.bind(null, this));
-      this.$refs.input.focus()
+      this.$refs.input.focus();
+      
+      // 添加调整面板高度的事件监听
+      document.addEventListener('mousemove', this.handleResize);
+      document.addEventListener('touchmove', this.handleResize);
+      document.addEventListener('mouseup', this.stopResize);
+      document.addEventListener('touchend', this.stopResize);
+    },
+    beforeUnmount() {
+      document.removeEventListener('mousemove', this.handleResize);
+      document.removeEventListener('touchmove', this.handleResize);
+      document.removeEventListener('mouseup', this.stopResize);
+      document.removeEventListener('touchend', this.stopResize);
     },
     methods:{
       cvtPai(pai){
@@ -115,7 +188,9 @@ import { CHIIHOU, HOUTEI_RAOYUI, FIELD_WEST, DOUBLE_RIICHI, CHANKAN, HAITEI_RAOY
         }
       },
       newProblem(){
-        // console.log("new problem",this.problem.flag)
+        if (!this.problem || !this.problem.flag) {
+          this.problem = this.generator.generate();
+        }
         function testFlag(this_,flag,name){
           if(test(this_.problem.flag,flag)){
             this_.info+=name;
@@ -153,6 +228,10 @@ import { CHIIHOU, HOUTEI_RAOYUI, FIELD_WEST, DOUBLE_RIICHI, CHANKAN, HAITEI_RAOY
         if(this.btnText=="确认"){
           this.hintText = "答案显示"
           this.btnText="下一题"
+          // 记录错误答案
+          if (!this.user[2]) {
+            this.recordMistake();
+          }
         }
         else{
           this.hintText = "输入答案"
@@ -164,6 +243,103 @@ import { CHIIHOU, HOUTEI_RAOYUI, FIELD_WEST, DOUBLE_RIICHI, CHANKAN, HAITEI_RAOY
           this.newProblem();
           this.$nextTick(()=>{this.$refs.input.focus()})
         }
+      },
+
+      // 调整面板高度
+      handleResize(e) {
+        if (!this.isDragging) return;
+        const clientY = e.clientY || e.touches[0].clientY;
+        const newHeight = window.innerHeight - clientY;
+        this.panelHeight = Math.max(100, Math.min(newHeight, 500));
+      },
+      stopResize() {
+        this.isDragging = false;
+      },
+      
+      // 记录操作
+      recordMistake() {
+        const mistake = {
+          hand: this.problem.hand,
+          agariPai: this.problem.agariPai,
+          furo: this.problem.furu,
+          dora: this.problem.dora,
+          ura: this.problem.ura,
+          userAnswer: this.ans,
+          correctAnswer: this.problem.ans,
+          info: this.info
+        };
+        this.mistakeStore.add(mistake);
+      },
+      
+      removeMistake(index) {
+        this.mistakeStore.remove(index);
+      },
+      
+      retryMistake(index) {
+        const mistakes = this.mistakeStore.getAll();
+        if (!mistakes || index < 0 || index >= mistakes.length) {
+          return;
+        }
+        const mistake = mistakes[index];
+        if (!mistake || !mistake.hand || !mistake.agariPai || !mistake.correctAnswer) {
+          return;
+        }
+        this.problem = {
+          hand: mistake.hand,
+          agariPai: mistake.agariPai,
+          furu: mistake.furo || [],
+          dora: mistake.dora || [],
+          ura: mistake.ura || [],
+          ans: mistake.correctAnswer
+        };
+        this.ans = '';
+        this.hintText = '输入答案';
+        this.btnText = '确认';
+      },
+      
+      // 导入导出
+      exportMistakes() {
+        const data = this.mistakeStore.toJSON() || '[]';
+        const blob = new Blob([data], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'mahjong-mistakes.json';
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+      
+      importMistakes() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.onchange = (e) => {
+          const file = e.target.files[0];
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            this.mistakeStore.fromJSON(event.target.result);
+          };
+          reader.readAsText(file);
+        };
+        input.click();
+      },
+      // 格式化错误记录显示
+      formatMistake(mistake) {
+        console.log('显示错误记录:', mistake);
+        return {
+          hand: mistake.hand.filter(p => !p.isAgari).map(p => this.cvtPai(p)),
+          agariPai: this.cvtPai(mistake.agariPai),
+          furo: mistake.furo.map(f => this.cvtFuro(f)),
+          dora: mistake.dora.map(p => this.cvtPai(p)),
+          ura: mistake.ura.map(p => this.cvtPai(p)),
+          userAnswer: mistake.userAnswer,
+          correctAnswer: `${mistake.correctAnswer.point1}/${mistake.correctAnswer.point2}`,
+          info: mistake.info,
+          timestamp: new Date(mistake.timestamp).toLocaleString(),
+          result: mistake.correctAnswer.isYakuman ?
+            `${parseInt(mistake.correctAnswer.han)}倍役满` :
+            `${parseInt(mistake.correctAnswer.han)}翻 ${parseInt(mistake.correctAnswer.fu)}符`
+        };
       }
     },
     computed:{
@@ -293,8 +469,8 @@ import { CHIIHOU, HOUTEI_RAOYUI, FIELD_WEST, DOUBLE_RIICHI, CHANKAN, HAITEI_RAOY
         }
         rt.push(correct)
         return rt
-      }
-    },
+      },
+    }
   }
 </script>
 
@@ -336,4 +512,110 @@ import { CHIIHOU, HOUTEI_RAOYUI, FIELD_WEST, DOUBLE_RIICHI, CHANKAN, HAITEI_RAOY
     overflow: auto;
   }
 
+  /* 历史记录面板样式 */
+  .history-panel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    border-top: 1px solid #eee;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    overflow: auto;
+    transition: height 0.2s;
+    z-index: 1000;
+    display: block !important;
+  }
+
+  .resize-handle {
+    height: 5px;
+    cursor: row-resize;
+    background: #eee;
+    text-align: center;
+  }
+
+  .resize-handle:hover {
+    background: #ddd;
+  }
+
+  .history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid #eee;
+  }
+
+  .history-content {
+    padding: 0.5rem;
+    overflow-y: auto;
+    height: calc(100% - 50px);
+  }
+
+  .mistake-item {
+    padding: 0.5rem;
+    cursor: pointer;
+    border-bottom: 1px dashed #eee;
+  }
+
+  .mistake-item:hover {
+    background: #f5f5f5;
+  }
+
+  .mistake-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .hand-display {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.1rem;
+  }
+
+  .furo-display {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.1rem;
+  }
+
+  /* 移除之前的强制尺寸设置，改用组件内部样式 */
+
+  .plus {
+    margin: 0 0.5rem;
+    font-weight: bold;
+  }
+
+  .answer-info {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: #666;
+  }
+
+  .answer-info div {
+    margin-bottom: 0.2rem;
+  }
+
+  .dora-display {
+    display: flex;
+    align-items: center;
+    gap: 0.1rem;
+  }
+
+  .result-display {
+    margin-left: 0.5rem;
+    font-weight: bold;
+  }
+  
+  .info-display {
+    margin-top: 0.3rem;
+    font-size: 0.9rem;
+    color: #333;
+    white-space: pre-line;
+  }
 </style>

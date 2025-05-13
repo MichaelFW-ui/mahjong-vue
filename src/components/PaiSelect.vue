@@ -24,7 +24,6 @@
       width: 6.25rem;
       height: auto;
     }
-
   }
   @media screen and (max-width: 799px) {
     img{
@@ -37,8 +36,17 @@
       width: 3.5rem;
       height: auto;
     }
-
   }
+
+  /* 强制覆盖历史记录面板中的牌尺寸 */
+  .history-panel img {
+    height: 2.5rem !important;
+  }
+  .history-panel img.horiz {
+    width: 2.5rem !important;
+    height: auto !important;
+  }
+
   .disabled{
     cursor:not-allowed;
     opacity: 0.5;

@@ -1,6 +1,6 @@
 <template>
   <div class="flex-row">
-    <pai-select v-for='(name,index) in hands' :key="index" :name="name"></pai-select>
+    <pai-select v-for='(name,index) in hands' :key="index" :name="name" :class="$attrs.class"></pai-select>
   </div>
 <!-- 
   <div v-if="type=='pon'" class="flex-row">
@@ -88,6 +88,10 @@ import PaiSelect from './PaiSelect.vue'
       red:{
         type:Number,
         default:0
+      },
+      class: {
+        type: String,
+        default: ''
       }
     },
   }
@@ -98,5 +102,14 @@ import PaiSelect from './PaiSelect.vue'
     display: flex;
     flex-direction: row;
     align-items: flex-end;
+  }
+
+  /* 强制覆盖历史记录面板中的牌尺寸 */
+  .history-panel .flex-row img {
+    height: 2.5rem !important;
+  }
+  .history-panel .flex-row img.horiz {
+    width: 2.5rem !important;
+    height: auto !important;
   }
 </style>
