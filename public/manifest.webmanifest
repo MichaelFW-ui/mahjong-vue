@@ -1,0 +1,19 @@
+{
+  "id": "/mahjong/",
+  "name": "面麻记分 · 日麻工具",
+  "short_name": "面麻记分",
+  "lang": "zh-CN",
+  "start_url": "/mahjong/#/scoreboard",
+  "scope": "/mahjong/",
+  "display": "standalone",
+  "background_color": "#f7f6f1",
+  "theme_color": "#194e3e",
+  "icons": [
+    {
+      "src": "scoreboard-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

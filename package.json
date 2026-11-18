@@ -1,10 +1,10 @@
 {
   "name": "mahjong-vue",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "scripts": {
     "serve": "node scripts/prepare-distribution.cjs && vue-cli-service serve",
-    "build": "node scripts/prepare-distribution.cjs && vue-cli-service build",
+    "build": "node scripts/prepare-distribution.cjs && vue-cli-service build && node scripts/prepare-offline.cjs",
     "lint": "vue-cli-service lint",
     "test": "node --experimental-strip-types --test tests/*.test.mjs"
   },
@@ -30,6 +30,7 @@
     "@vue/eslint-config-typescript": "^9.1.0",
     "eslint": "^7.32.0",
     "eslint-plugin-vue": "^8.0.3",
+    "fake-indexeddb": "^6.2.8",
     "naive-ui": "^2.32.1",
     "typescript": "~4.5.5",
     "vfonts": "^0.0.3",

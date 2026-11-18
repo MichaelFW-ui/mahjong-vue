@@ -1,6 +1,6 @@
 # Mahjong tools
 
-A derivative of [llx07/mahjong-vue](https://github.com/llx07/mahjong-vue), with riichi mahjong scoring, practice, and mistake review. The interface uses Vue and the calculation logic uses TypeScript.
+A derivative of [llx07/mahjong-vue](https://github.com/llx07/mahjong-vue), with riichi mahjong scoring, practice, mistake review, and an in-person table scoreboard. The interface uses Vue and the calculation logic uses TypeScript.
 
 [中文](README_CN.md) · [Deployment guide](docs/DEPLOYMENT.md)
 
@@ -8,6 +8,9 @@ A derivative of [llx07/mahjong-vue](https://github.com/llx07/mahjong-vue), with 
 
 - Score calculation and practice with the original rule settings.
 - Mistake history, retry, and JSON import/export. History is held in page memory; export it before refreshing to keep a copy.
+- In-person scoring (面麻记分): a four-direction table on touch devices and upright player panels on desktop, with automatic and manual layout selection. Includes two-dice rolls, random starting East with cyclic seat order preserved, game setup, riichi, ron, tsumo, multiple winners, exhaustive/abortive draws, adjustments, multi-step undo, and final standings.
+- Scoreboard games use a separate IndexedDB database, with reload recovery, multiple saved games, individual permanent deletion after confirmation, and JSON backup import/export. Maintain a reusable player roster and select four players at setup. Responsibility payments support the liable player, affected yakuman multiples, and honba allocation; legacy Android import remains a future addition.
+- Production builds cache all three pages for offline use after the initial online preparation; the development server retains hot reload. The scoreboard logic, interface, and visual materials are independently implemented.
 - Merged upstream `c4eef6e` (2026-05-26), including nuki dora and the corresponding rinshan support. The baseline is recorded in `project-info.json`.
 
 ## Local development
@@ -21,7 +24,13 @@ npm test
 npm run build
 ```
 
+Tests cover scoring, responsibility payments, layout bounds, and database migrations; IndexedDB tests use `fake-indexeddb`.
+
 Production assets are written to `dist/`. Run `npm run serve` and open `/mahjong/` under the printed URL for local development.
+
+Open `/mahjong/#/scoreboard` for in-person scoring. Table-mode player panels and their winning-hand dialogs face each seat; flat mode keeps all text upright. Layout preferences are device-local and each game retains its initial rules. For multiple ron, the closest winner after the discarder receives the riichi pool, while honba are paid to each winner. Ties follow initial seat order, and the remaining pool goes to first place when ending a game.
+
+The final build step generates `dist/service-worker.js`, scoped to `/mahjong/`. Updates activate after older tabs close. Game data and JSON backups are independent of the resource cache. Clearing site data removes browser-local records, so export backups regularly.
 
 ## Releases
 

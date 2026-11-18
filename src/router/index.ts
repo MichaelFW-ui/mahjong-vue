@@ -12,6 +12,11 @@ const routes = [
     component: CalculatorView
   },
   {
+    path: '/scoreboard',
+    name: 'scoreboard',
+    component: () => import(/* webpackChunkName: "scoreboard" */ '../views/ScoreboardView.vue')
+  },
+  {
     path: '/practice',
     name: 'practice',
     // route level code-splitting

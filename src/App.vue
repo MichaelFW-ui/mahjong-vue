@@ -1,17 +1,17 @@
 <template>
-  <div id="root">
+  <div id="root" :class="{ 'scoreboard-shell': $route.name === 'scoreboard' }">
     <header>
-      <n-space>
+      <nav class="main-navigation" aria-label="日麻工具">
         <router-link class="nav" to="/calculator">计算器</router-link>
-        <div class="nav">|</div>
         <router-link class="nav" to="/practice">点数练习</router-link>
-      </n-space>
+        <router-link class="nav" to="/scoreboard">面麻记分</router-link>
+      </nav>
 
       <n-space justify="end" id="nav-buttons">
-        <n-icon size="2rem" role="button" tabindex="0" aria-label="关于" @click="showInfo=!showInfo" @keydown.enter="showInfo=!showInfo" @keydown.space.prevent="showInfo=!showInfo" color="#333">
+        <n-icon size="1.4rem" role="button" tabindex="0" aria-label="关于" @click="showInfo=!showInfo" @keydown.enter="showInfo=!showInfo" @keydown.space.prevent="showInfo=!showInfo" color="#536453">
           <InfoRound/>
         </n-icon>
-        <n-icon size="2rem" @click="showSetting=!showSetting" color="#333">
+        <n-icon v-if="$route.name !== 'scoreboard'" size="1.4rem" role="button" tabindex="0" aria-label="计算规则设置" @click="showSetting=!showSetting" @keydown.enter="showSetting=!showSetting" @keydown.space.prevent="showSetting=!showSetting" color="#536453">
           <SettingsRound/>
         </n-icon>
       </n-space>
@@ -104,7 +104,7 @@
     >
 
       <div class="about-content">
-        <p>基于 <a :href="buildInfo.upstreamRepository" target="_blank" rel="noopener noreferrer">llx07 的日麻工具</a>二次开发，增加了练习历史记录和错题复习功能。</p>
+        <p>基于 <a :href="buildInfo.upstreamRepository" target="_blank" rel="noopener noreferrer">llx07 的日麻工具</a>二次开发，增加了练习历史记录、错题复习和面麻记分功能。面麻记分的逻辑、界面和材质独立实现。</p>
         <p>原作者：<a href="https://github.com/llx07" target="_blank" rel="noopener noreferrer">linlexiao（llx07）</a>。上游版本：<a :href="buildInfo.upstreamUrl" target="_blank" rel="noopener noreferrer">{{ buildInfo.upstreamCommit.slice(0, 7) }}（{{ buildInfo.upstreamDate }}）</a>。</p>
         <p>当前版本：v{{ buildInfo.version }} · <a :href="buildInfo.sourceUrl" target="_blank" rel="noopener noreferrer">{{ buildInfo.commit.slice(0, 7) }}</a>，修改日期：{{ buildInfo.modifiedDate }}。</p>
         <p>程序采用 <a :href="baseUrl + 'licenses/GPL-3.0.txt'" target="_blank" rel="noopener noreferrer">GNU GPL v3</a> 协议发布。<a :href="buildInfo.sourceUrl" target="_blank" rel="noopener noreferrer">版本源码</a> · <a :href="baseUrl + 'source.tar.gz'" download>下载源码</a>。</p>
@@ -166,7 +166,7 @@
   }
 
   #root{
-    --nav-height: 2.5rem  ;
+    --nav-height: 3.5rem  ;
     --nav-padding: 0.25rem  ;
   }
   
@@ -176,17 +176,28 @@
   }
 
   header{
+    box-sizing: border-box;
     height: var(--nav-height);
     text-align: center;
     position: fixed;
-    width: calc(100% - 2.4rem);
+    width: 100%;
     top: 0;
     left:0;
     display: flex;
-    padding: var(--nav-padding) 1.2rem;
+    padding: 0 1.5rem;
+    align-items: center;
+    background: rgba(250,250,245,.95);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid #e4e8dc;
   }
 
+  .main-navigation{display:flex;align-items:center;gap:5px;min-width:0}
+
   footer {
+    box-sizing: border-box;
+    font-size: 11px;
+    color: #8b9485;
+    background: #fafaf6;
     position: fixed ;
     bottom: 0;
     left:0;
@@ -206,11 +217,15 @@
     height:var(--nav-height);
     line-height: var(--nav-height);
     text-align: center;
-    font-size: 1.5rem;
+    font-size: .875rem;
+    padding: 0 12px;
+    border-radius: 7px;
+    white-space: nowrap;
+    text-decoration: none;
   }
 
   a.nav  {
-    font-weight: bold;
+    font-weight: 500;
     color: #2c3e50;
   }
   #nav-buttons{
@@ -221,7 +236,8 @@
     cursor: pointer;
   }
   a.nav.router-link-exact-active {
-    color: #42b983;
+    color: #315c3e;
+    background: #e8eddf;
   }
   .flex{
     flex: auto;
@@ -234,6 +250,10 @@
     padding-right: 2px;
   }
 
+  .scoreboard-shell #content{padding-left:0;padding-right:0;padding-bottom:0}
+  .scoreboard-shell footer{position:static;height:24px;min-height:24px;background:#f7f6f1;padding:0 8px;line-height:1.4;font-size:10px}
+  @media(max-width:480px){header{padding:0 12px}.nav{padding:0 9px;font-size:12px}.main-navigation{gap:2px}}
+
 
   #modal::before{
     content: "";
@@ -245,4 +265,8 @@
     width:100%;
     height: 100%;
   }
+</style>
+
+<style>
+body{margin:0}
 </style>
