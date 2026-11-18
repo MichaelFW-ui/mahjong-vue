@@ -8,7 +8,7 @@
       </n-space>
 
       <n-space justify="end" id="nav-buttons">
-        <n-icon size="2rem" @click="showInfo=!showInfo" color="#333">
+        <n-icon size="2rem" role="button" tabindex="0" aria-label="关于" @click="showInfo=!showInfo" @keydown.enter="showInfo=!showInfo" @keydown.space.prevent="showInfo=!showInfo" color="#333">
           <InfoRound/>
         </n-icon>
         <n-icon size="2rem" @click="showSetting=!showSetting" color="#333">
@@ -21,10 +21,8 @@
       <router-view :rule="rule"/>
     </div>
 
-    <footer>            
-      <div>©2022-2023 linlexiao.com 版权所有 | 
-        <a target="_blank" href="https://beian.miit.gov.cn/"> 沪ICP备2022025418号-2</a>
-      </div>
+    <footer>
+      <div>原作 ©2022-2023 <a href="https://linlexiao.com/">linlexiao.com</a> · 二次开发 <a href="https://github.com/MichaelFW-ui/mahjong-vue">MichaelFW-ui</a></div>
     </footer>
 
     <!-- 设置修改框  -->
@@ -105,32 +103,12 @@
       :bordered="false"
     >
 
-      <div>
-        <p>
-            本项目采用 Vue 构建，核心逻辑使用 JavaScript 实现，并在 Github 上开源。项目地址 <a href="https://github.com/linlexiao0/mahjong-vue">https://github.com/linlexiao0/mahjong-vue</a>。欢迎提出 Pull Requests 或 Fork 你自己的版本！
-        </p>
-
-        <p>
-          牌画素材来自 <a href="https://github.com/lietxia/mahjong_graphic">https://github.com/lietxia/mahjong_graphic</a>，以「M+字型授權條款」授权。
-        </p>
-
-        <p>
-          支持对某些规则进行自定义（旁边的按钮）。现在可以自定义的规则有：食断，是否计多倍役满、复合役满，连凤雀头符数，是否计累计役满。
-        </p>
-
-        <p>
-          如果有什么意见和想法，可以在 Github 上提出 Issue，或也可以联系我的邮箱 <a href="mailto://linlexiao2007@outlook.com">linlexiao2007@outlook.com</a>。
-        </p>
-
-        
-        <p>
-          目前的计划（按重要性排序）：
-          <ol>
-            <li>改进 UI</li>
-            <li>将项目迁移到TypeScript</li>
-            <li>编写测试用例</li>
-          </ol>
-        </p>
+      <div class="about-content">
+        <p>基于 <a :href="buildInfo.upstreamRepository" target="_blank" rel="noopener noreferrer">llx07 的日麻工具</a>二次开发，增加了练习历史记录和错题复习功能。</p>
+        <p>原作者：<a href="https://github.com/llx07" target="_blank" rel="noopener noreferrer">linlexiao（llx07）</a>。上游版本：<a :href="buildInfo.upstreamUrl" target="_blank" rel="noopener noreferrer">{{ buildInfo.upstreamCommit.slice(0, 7) }}（{{ buildInfo.upstreamDate }}）</a>。</p>
+        <p>当前版本：v{{ buildInfo.version }} · <a :href="buildInfo.sourceUrl" target="_blank" rel="noopener noreferrer">{{ buildInfo.commit.slice(0, 7) }}</a>，修改日期：{{ buildInfo.modifiedDate }}。</p>
+        <p>程序采用 <a :href="baseUrl + 'licenses/GPL-3.0.txt'" target="_blank" rel="noopener noreferrer">GNU GPL v3</a> 协议发布。<a :href="buildInfo.sourceUrl" target="_blank" rel="noopener noreferrer">版本源码</a> · <a :href="baseUrl + 'source.tar.gz'" download>下载源码</a>。</p>
+        <p>牌画素材来自 <a href="https://github.com/lietxia/mahjong_graphic" target="_blank" rel="noopener noreferrer">lietxia/mahjong_graphic</a>，采用 <a :href="baseUrl + 'licenses/MPlus.txt'" target="_blank" rel="noopener noreferrer">M+ 字型授权条款</a>。<a :href="baseUrl + 'licenses/THIRD_PARTY_NOTICES.txt'" target="_blank" rel="noopener noreferrer">素材与依赖说明</a>。</p>
       </div>
 
     </n-modal>
@@ -139,6 +117,7 @@
 </template>
 
 <script>
+  import buildInfo from './build-info.json'
   import { Rule } from './store/definition'
   import { NModal,NRadioGroup,NRadioButton, NGrid, NGridItem, NIcon, NSpace} from 'naive-ui'
   import { SettingsRound,InfoRound } from '@vicons/material'
@@ -147,6 +126,8 @@
     name:"App",
     data(){
       return {
+        buildInfo,
+        baseUrl: process.env.BASE_URL,
         rule:new Rule(),
         showSetting:false,
         showInfo:false,
@@ -178,6 +159,8 @@
 
 <style scoped>
   
+  .about-content { line-height: 1.8; overflow-wrap: anywhere; }
+
   #bk{
     margin-left: 3.75rem;
   }

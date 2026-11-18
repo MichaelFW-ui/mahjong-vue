@@ -21,3 +21,10 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+
+# Generated distribution metadata and local Workers state
+.wrangler/
+src/build-info.json
+public/licenses/
+public/version.json
+public/source.tar.gz

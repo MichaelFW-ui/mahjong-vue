@@ -1,5 +1,5 @@
-import { Pai, Block } from './types';
-import { Result } from './definition';
+import type { Pai, Block } from './types';
+import type { Result } from './definition';
 
 export interface MistakeRecord {
   hand: Pai[];
@@ -11,9 +11,10 @@ export interface MistakeRecord {
   correctAnswer: Result;
   info: string;
   timestamp: number;
+  flag?: number;
 }
 
-class MistakeStore {
+export class MistakeStore {
   private mistakes: MistakeRecord[] = [];
   
   add(mistake: Omit<MistakeRecord, 'timestamp'>) {
@@ -28,7 +29,9 @@ class MistakeStore {
   }
   
   remove(index: number) {
-    this.mistakes.splice(index, 1);
+    const mistake = this.getAll()[index];
+    if (!mistake) return;
+    this.mistakes.splice(this.mistakes.indexOf(mistake), 1);
   }
   
   clear() {

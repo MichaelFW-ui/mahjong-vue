@@ -1,36 +1,38 @@
-# 日麻工具
+# Mahjong tools
 
-## 简介
+A derivative of [llx07/mahjong-vue](https://github.com/llx07/mahjong-vue), with riichi mahjong scoring, practice, and mistake review. The interface uses Vue and the calculation logic uses TypeScript.
 
-实现了日麻点数计算以及练习功能。本项目采用 Vue 构建，核心逻辑使用 JavaScript 实现。
+[中文](README_CN.md) · [Deployment guide](docs/DEPLOYMENT.md)
 
-牌画素材来自 最完整的日本麻將中文維基百科。
+## Features and upstream
 
-支持对某些规则进行自定义（旁边的按钮）。现在可以自定义的规则有：食断，是否计多倍役满、复合役满，连凤雀头符数，是否计累计役满。
+- Score calculation and practice with the original rule settings.
+- Mistake history, retry, and JSON import/export. History is held in page memory; export it before refreshing to keep a copy.
+- Merged upstream `c4eef6e` (2026-05-26), including nuki dora and the corresponding rinshan support. The baseline is recorded in `project-info.json`.
 
-## 个人修改
+## Local development
 
-添加了点数练习的历史记录功能。可以回顾错题。注意刷新页面会清除。如果有喜欢的题，记得导出json。
+Use Node.js 22 and npm:
 
-
-## 配置开发环境
-
-### Project setup
-```
-npm install
-```
-
-#### Compiles and hot-reloads for development
-```
+```bash
+npm ci
 npm run serve
-```
-
-#### Compiles and minifies for production
-```
+npm test
 npm run build
 ```
 
-#### Lints and fixes files
-```
-npm run lint
-```
+Production assets are written to `dist/`. Run `npm run workers:dev` for a local static-assets preview and open `/mahjong/` under the printed URL.
+
+## Releases
+
+Public path: https://www.hoshimiaki.com/mahjong/ . This public application is maintained separately from the blog.
+
+Push commits to GitHub `main`. The connected Cloudflare Workers Builds project deploys to the designated `hoshimiaki-mahjong` Worker. Follow the [deployment guide](docs/DEPLOYMENT.md) for the one-time connection, build settings, path routes and existing preferred-edge DNS. Reuse this Worker for future work. The deploy command runs in the Cloudflare build environment.
+
+## Authors, artwork and license
+
+Original author: [linlexiao (llx07)](https://github.com/llx07). Derivative: [MichaelFW-ui](https://github.com/MichaelFW-ui/mahjong-vue). The program is distributed under [GNU GPL v3](LICENSE).
+
+Tile artwork comes from [lietxia/mahjong_graphic](https://github.com/lietxia/mahjong_graphic) under the [M+ Fonts License](licenses/MPlus.txt). See [third-party notices](THIRD_PARTY_NOTICES.md).
+
+About identifies the deployed version and Git commit, upstream, licenses and artwork source. Each build includes license texts, version metadata and a complete source archive of that Git commit.

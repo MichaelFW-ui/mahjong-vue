@@ -1,11 +1,14 @@
 {
-  "name": "test2",
-  "version": "0.1.0",
+  "name": "mahjong-vue",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "serve": "node scripts/prepare-distribution.cjs && vue-cli-service serve",
+    "build": "node scripts/prepare-distribution.cjs && vue-cli-service build",
+    "lint": "vue-cli-service lint",
+    "workers:dev": "wrangler dev",
+    "workers:deploy": "wrangler deploy",
+    "test": "node --experimental-strip-types --test tests/*.test.mjs"
   },
   "dependencies": {
     "bootstrap": "^5.2.0",
@@ -13,7 +16,6 @@
     "jquery": "^3.6.0",
     "vue": "^3.2.13",
     "vue-class-component": "^8.0.0-0",
-    "vue-cli-service": "^5.0.10",
     "vue-router": "^4.1.3"
   },
   "devDependencies": {
@@ -33,7 +35,8 @@
     "naive-ui": "^2.32.1",
     "typescript": "~4.5.5",
     "vfonts": "^0.0.3",
-    "vicons": "^0.0.1"
+    "vicons": "^0.0.1",
+    "wrangler": "4.155.0"
   },
   "eslintConfig": {
     "root": true,
@@ -55,5 +58,9 @@
     "last 2 versions",
     "not dead",
     "not ie 11"
-  ]
+  ],
+  "license": "GPL-3.0",
+  "engines": {
+    "node": ">=22"
+  }
 }

@@ -151,7 +151,7 @@ import { CHIIHOU, HOUTEI_RAOYUI, FIELD_WEST, DOUBLE_RIICHI, CHANKAN, HAITEI_RAOY
     },
     mounted() {
       //  监听键盘事件
-      document.addEventListener('keydown', this.handleKeyDown.bind(null, this));
+      document.addEventListener('keydown', this.handleKeyDown);
       this.$refs.input.focus();
       
       // 添加调整面板高度的事件监听
@@ -161,6 +161,7 @@ import { CHIIHOU, HOUTEI_RAOYUI, FIELD_WEST, DOUBLE_RIICHI, CHANKAN, HAITEI_RAOY
       document.addEventListener('touchend', this.stopResize);
     },
     beforeUnmount() {
+      document.removeEventListener('keydown', this.handleKeyDown);
       document.removeEventListener('mousemove', this.handleResize);
       document.removeEventListener('touchmove', this.handleResize);
       document.removeEventListener('mouseup', this.stopResize);
@@ -217,14 +218,13 @@ import { CHIIHOU, HOUTEI_RAOYUI, FIELD_WEST, DOUBLE_RIICHI, CHANKAN, HAITEI_RAOY
         testFlag(this,TENHOU, "天和\n");
         testFlag(this,CHIIHOU, "地和\n");
       },
-      handleKeyDown: (vm, e) => {
+      handleKeyDown(e) {
         if(e.key == "Enter"){
-            vm.onClick()
+            this.onClick()
             e.preventDefault()
         }
       },
       onClick(){
-          console.log(this)
         if(this.btnText=="确认"){
           this.hintText = "答案显示"
           this.btnText="下一题"
@@ -266,7 +266,8 @@ import { CHIIHOU, HOUTEI_RAOYUI, FIELD_WEST, DOUBLE_RIICHI, CHANKAN, HAITEI_RAOY
           ura: this.problem.ura,
           userAnswer: this.ans,
           correctAnswer: this.problem.ans,
-          info: this.info
+          info: this.info,
+          flag: this.problem.flag
         };
         this.mistakeStore.add(mistake);
       },
@@ -290,11 +291,14 @@ import { CHIIHOU, HOUTEI_RAOYUI, FIELD_WEST, DOUBLE_RIICHI, CHANKAN, HAITEI_RAOY
           furu: mistake.furo || [],
           dora: mistake.dora || [],
           ura: mistake.ura || [],
-          ans: mistake.correctAnswer
+          ans: mistake.correctAnswer,
+          flag: mistake.flag
         };
+        this.info = mistake.info || '';
         this.ans = '';
         this.hintText = '输入答案';
         this.btnText = '确认';
+        this.$nextTick(() => this.$refs.input.focus());
       },
       
       // 导入导出
@@ -325,7 +329,6 @@ import { CHIIHOU, HOUTEI_RAOYUI, FIELD_WEST, DOUBLE_RIICHI, CHANKAN, HAITEI_RAOY
       },
       // 格式化错误记录显示
       formatMistake(mistake) {
-        console.log('显示错误记录:', mistake);
         return {
           hand: mistake.hand.filter(p => !p.isAgari).map(p => this.cvtPai(p)),
           agariPai: this.cvtPai(mistake.agariPai),
