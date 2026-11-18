@@ -6,8 +6,6 @@
     "serve": "node scripts/prepare-distribution.cjs && vue-cli-service serve",
     "build": "node scripts/prepare-distribution.cjs && vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "workers:dev": "wrangler dev",
-    "workers:deploy": "wrangler deploy",
     "test": "node --experimental-strip-types --test tests/*.test.mjs"
   },
   "dependencies": {
@@ -35,8 +33,7 @@
     "naive-ui": "^2.32.1",
     "typescript": "~4.5.5",
     "vfonts": "^0.0.3",
-    "vicons": "^0.0.1",
-    "wrangler": "4.155.0"
+    "vicons": "^0.0.1"
   },
   "eslintConfig": {
     "root": true,

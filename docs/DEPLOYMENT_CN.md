@@ -1,96 +1,59 @@
-# Cloudflare 同域路径部署
+# 通过博客子模块发布日麻工具
 
-本项目是独立的日麻工具，正式入口为 https://www.hoshimiaki.com/mahjong/ 。博客的代码、构建与发布保持独立。
+本工具在公开仓库 `MichaelFW-ui/mahjong-vue` 独立维护。博客通过 Git 子模块固定使用其中一个提交，分别构建后将工具成品复制到 `dist/mahjong/`，统一由已有的 `hoshimiaki-blog` Worker 发布。
 
-## 固定发布约定
+正式地址：https://www.hoshimiaki.com/mahjong/ 。整个网站使用现有的一个 Worker，沿用 GitHub → Workers Builds 自动发布。
 
-| 项目 | 配置 |
-| --- | --- |
-| GitHub 仓库 | `MichaelFW-ui/mahjong-vue`，公开 |
-| 生产分支 | `main` |
-| Worker 名称 | `hoshimiaki-mahjong` |
-| 正式路径 | `https://www.hoshimiaki.com/mahjong/` |
-| 前端资源前缀 | `vue.config.js` 的 `publicPath: '/mahjong/'` |
-| Workers 资源前缀 | `wrangler.jsonc` 的 `assets.base_path: '/mahjong'` |
+## 构建与许可边界
 
-日常发布通过推送 GitHub 触发 Cloudflare Workers Builds。部署命令由 Cloudflare 构建环境执行。后续维护始终复用已关联的 `hoshimiaki-mahjong`；创建、重命名、替换或复制 Worker 需要用户明确提出基础设施变更。日常开发只做本地构建和预览，不运行本机 Cloudflare 登录和生产部署。
+博客仓库中的 `external/mahjong-vue` 是指向本公开仓库的 Git 子模块。博客自己的提交记录保存子模块路径、仓库地址和提交号。麻将源码由它自己的 Git 仓库管理。
 
-现有博客使用 `hoshimiaki-blog`，关联私有仓库 `MichaelFW-ui/musical-waffle-blog-source`。保留博客现有的整站路由及 DNS 配置。
+Astro 构建博客，Vue 单独构建麻将工具。博客的脚本和组件只链接 `/mahjong/`，工具使用自己的 JavaScript、页面、素材、About、GPL 许可证和对应源码归档。独立作品并置的许可依据见 [GPL v3 第 5 条](https://www.gnu.org/licenses/gpl-3.0.html#section5)。
 
-## 一、首次关联 GitHub 仓库
+## 一、在麻将仓库完成修改
 
-1. 打开 Cloudflare 控制台，进入 **计算和 AI → Workers 和 Pages**（Compute & AI → Workers & Pages）。
-2. 首次设置时选择**创建应用 → 连接 GitHub**（Create application → Connect GitHub / Import a repository）。选择 `MichaelFW-ui/mahjong-vue`。如果列表中已有 `hoshimiaki-mahjong`，进入它的**设置 → 构建**（Settings → Build）连接仓库。
-3. 填写以下配置，核对名称后保存并部署。
+使用 Node.js 22 和 npm，执行本地检查：
 
-| 控制台字段 | 填写内容 |
-| --- | --- |
-| 项目 / Worker 名称（Worker name） | `hoshimiaki-mahjong` |
-| 生产分支（Production branch） | `main` |
-| 根目录（Root directory） | 仓库根目录，保持默认 |
-| 构建命令（Build command） | `npm test && npm run build` |
-| 部署命令（Deploy command） | `npm run workers:deploy` |
-| Node.js 版本（Build variable） | `NODE_VERSION=22`；仓库也提供 `.node-version` |
+```bash
+npm ci
+npm test
+npm run build
+```
 
-Cloudflare 按 `package-lock.json` 安装依赖。若界面单独提供安装命令（Install command），填写 `npm ci`。构建依赖包括固定版本的 Wrangler；部署身份由 Workers Builds 管理，无需在 GitHub 仓库或本机配置 API 令牌。
+本地运行使用 `npm run serve`，访问终端显示地址下的 `/mahjong/`。保留 Vue 的 `publicPath: '/mahjong/'`。
 
-等待构建和部署显示成功。在它提供的 `workers.dev` 地址后面加上 `/mahjong/` 预览，例如 `https://hoshimiaki-mahjong.<你的子域>.workers.dev/mahjong/`。
+将通过检查的修改提交并推送到本仓库的 `main`。构建时的源码归档来自本仓库 Git 提交，因此需要先提交工具修改，再构建正式分发版本。
 
-## 二、沿用当前的 DNS 优选
+## 二、更新博客的引用版本
 
-两个 DNS 记录继续保持现有设置：
+进入博客仓库 `MichaelFW-ui/musical-waffle-blog-source`，执行：
 
-| 类型 | 名称 | 内容 | 代理状态 |
-| --- | --- | --- | --- |
-| CNAME | `@` | `saas.sin.fan` | 仅 DNS（灰色云朵） |
-| CNAME | `www` | `saas.sin.fan` | 仅 DNS（灰色云朵） |
+```bash
+git submodule update --init external/mahjong-vue
+git -C external/mahjong-vue fetch origin
+git -C external/mahjong-vue checkout <已发布的麻将提交号>
+git add external/mahjong-vue
+pnpm build
+```
 
-域名与路径路由由控制台管理。两个项目的 Wrangler 配置都省略 `route`、`routes` 和 `custom_domain`，让自动构建专注于更新代码与资源。保留现有域名的解析方式和博客路由。
+这里的提交号选择本公开仓库已经推送的版本。博客构建固定使用所记录的提交，不自动追随上游移动，便于复现和回退。日常修改优先在独立麻将检出目录中完成。
 
-## 三、将 /mahjong/ 分配给独立 Worker
+## 三、推送博客，复用现有自动部署
 
-1. 打开 **Workers 和 Pages → hoshimiaki-mahjong**。
-2. 进入**设置 → 域和路由 → 添加 → 路由**（Settings → Domains & Routes → Add → Route）。此处使用“路由”。
-3. 区域（Zone）选择 `hoshimiaki.com`，分别添加下列两条规则。
+博客现有的构建命令为 `pnpm check && pnpm test && pnpm build`，部署命令为 `pnpm run workers:deploy`，Worker 名称保持 `hoshimiaki-blog`。
 
-| 路由模式（Route pattern） | 目标 Worker |
-| --- | --- |
-| `www.hoshimiaki.com/mahjong/*` | `hoshimiaki-mahjong` |
-| `hoshimiaki.com/mahjong/*` | `hoshimiaki-mahjong` |
+`pnpm build` 会生成博客、初始化缺失的子模块、安装工具自身的锁定依赖、运行工具测试并独立构建，将成品复制到博客 `dist/mahjong/`。随后 Workers Builds 发布整个 `dist/`。
 
-若界面要求选择失败模式（Failure mode），选择**失败时关闭**（Fail closed）。这能让麻将路径在应用故障时直接报错，便于定位问题。
+确认本地构建后，提交博客的子模块版本更新并推送到博客 `main`。等待现有 GitHub Workers Builds 检查成功即可。
 
-博客原有的 `www.hoshimiaki.com/*` 和 `hoshimiaki.com/*` 继续属于 `hoshimiaki-blog`。Cloudflare 优先匹配更具体的路径，所以 `/mahjong/*` 进入麻将工具，其他路径继续进入博客。DNS 记录不需要增加路径。
+## 四、保持当前域名配置
 
-## 四、访问与验收
+当前的 `hoshimiaki.com` 和 `www.hoshimiaki.com` 继续以仅 DNS 的 CNAME 指向 `saas.sin.fan`，博客保留 `hoshimiaki.com/*` 和 `www.hoshimiaki.com/*` 整站路由。
 
-打开 https://www.hoshimiaki.com/mahjong/ ，检查计算器、点数练习、历史错题、导入导出和“关于”。“关于”提供当前版本、上游提交、GPL v3 许可证、牌画素材说明及本版本源码下载。
+访问 `/mahjong/` 时，现有 Worker 从网站的 `dist/mahjong/` 目录提供工具页面和资源。裸域名现有的跳转会保留路径。此流程沿用当前的 DNS、路由和 GitHub 仓库关联。
 
-访问 https://hoshimiaki.com/mahjong/ 时，现有的裸域名跳转会保留路径。博客仓库提供 `/mahjong` 到 `/mahjong/` 的补斜杠跳转；主页“做过的小工具”中的入口标注“二次开发”。
+## 五、验收
 
-然后检查博客首页和文章仍可访问，确认两个 Worker 的路由分工正确。
+打开正式地址，检查计算器、点数练习、错题记录、重做、导入导出和 About。About 中的版本提交须与博客记录的子模块提交一致；GPL、M+ 素材许可证和本版本源码下载应可访问。
 
-## 五、后续更新
-
-本地检查使用 `npm ci`、`npm test` 和 `npm run build`；需要查看正式路径时运行 `npm run workers:dev`，打开终端地址下的 `/mahjong/`。这些本地检查不发布生产版本。
-
-确认修改后提交并推送到 `main`。在 GitHub 提交的 Workers Builds 检查或 Cloudflare 的构建记录中等待发布成功。域名、路由、Worker 名称和 DNS 优选设置保持既有安排。
-
-每次正式构建会生成版本信息、完整许可证和 `source.tar.gz`，源码归档来自构建时的 Git 提交，便于访问者获得对应版本。上游同步信息记录在 `project-info.json`；更新上游时同时维护此文件。
-
-## 排查
-
-| 现象 | 检查位置 |
-| --- | --- |
-| 构建报错 | 当前仓库的 Workers Builds 日志，确认 Node.js 22、根目录与两条命令 |
-| workers.dev 正常，正式路径显示博客 404 | 麻将 Worker 的两条 `/mahjong/*` 路由是否已保存 |
-| HTML 打开但脚本 404 | `publicPath` 和 `assets.base_path` 是否都为 `/mahjong/` 对应前缀 |
-| 推送后没有新构建 | Workers 的设置 → 构建，确认关联此仓库和 `main` |
-| Worker 名称不一致 | 核对已关联项目与 `wrangler.jsonc` 的 `hoshimiaki-mahjong` |
-
-## 参考
-
-- [Cloudflare Workers Builds 配置](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/)
-- [Cloudflare 路由与优先级](https://developers.cloudflare.com/workers/configuration/routing/routes/)
-- [静态资源子路径部署](https://developers.cloudflare.com/workers/static-assets/routing/advanced/serving-a-subdirectory/)
-- [用户现有的 DNS 优选方案](https://winston.ink/post/preferential/)
+博客的发布约定记录在它的 `DEPLOYMENT.md` 和 `docs/WORKERS_CN.md`。维护工作只复用现有 Worker；新建、重命名或替换生产基础设施须由用户明确提出。

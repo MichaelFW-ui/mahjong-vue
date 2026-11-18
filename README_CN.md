@@ -21,13 +21,13 @@ npm test
 npm run build
 ```
 
-构建结果位于 `dist/`。`npm run workers:dev` 提供与线上一致的静态资源路径预览，打开终端显示地址下的 `/mahjong/`。
+构建结果位于 `dist/`。本地运行使用 `npm run serve`，打开终端显示地址下的 `/mahjong/`。
 
 ## 发布
 
 正式路径：https://www.hoshimiaki.com/mahjong/ 。源码仓库保持公开，博客独立维护。
 
-将提交推送到 GitHub `main`，由已关联的 Cloudflare Workers Builds 发布到固定的 `hoshimiaki-mahjong`。首次关联、构建字段、同域路径和现有 DNS 优选的完整操作见[部署指南](docs/DEPLOYMENT_CN.md)。后续维护复用此 Worker。部署命令由 Cloudflare 构建环境运行。
+将工具提交推送到 GitHub `main`，再更新博客的 `external/mahjong-vue` 子模块提交。博客独立构建本 Vue 应用，将成品放入 `dist/mahjong/`，由已经关联的 `hoshimiaki-blog` Worker 统一发布。完整步骤见[部署指南](docs/DEPLOYMENT_CN.md)。
 
 ## 作者、素材与许可证
 

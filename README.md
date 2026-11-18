@@ -21,13 +21,13 @@ npm test
 npm run build
 ```
 
-Production assets are written to `dist/`. Run `npm run workers:dev` for a local static-assets preview and open `/mahjong/` under the printed URL.
+Production assets are written to `dist/`. Run `npm run serve` and open `/mahjong/` under the printed URL for local development.
 
 ## Releases
 
 Public path: https://www.hoshimiaki.com/mahjong/ . This public application is maintained separately from the blog.
 
-Push commits to GitHub `main`. The connected Cloudflare Workers Builds project deploys to the designated `hoshimiaki-mahjong` Worker. Follow the [deployment guide](docs/DEPLOYMENT.md) for the one-time connection, build settings, path routes and existing preferred-edge DNS. Reuse this Worker for future work. The deploy command runs in the Cloudflare build environment.
+Push application commits to GitHub `main`, then update and commit the private blog's `external/mahjong-vue` submodule revision. The blog builds this Vue application separately and copies its output to `dist/mahjong/`. Its existing `hoshimiaki-blog` Worker publishes the whole site through GitHub Workers Builds. Follow the [deployment guide](docs/DEPLOYMENT.md) for the complete workflow.
 
 ## Authors, artwork and license
 

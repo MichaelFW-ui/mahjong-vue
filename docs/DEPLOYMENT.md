@@ -1,45 +1,37 @@
-# Cloudflare path deployment
+# Publish through the blog submodule
 
-This independently built application is served at https://www.hoshimiaki.com/mahjong/ . Its public source repository is `MichaelFW-ui/mahjong-vue`, production branch `main`, and designated Worker `hoshimiaki-mahjong`.
+This public `MichaelFW-ui/mahjong-vue` repository is referenced by the private blog as the `external/mahjong-vue` Git submodule. The blog pins an application commit, builds Vue separately, and copies the finished app to `dist/mahjong/`. The existing `hoshimiaki-blog` Worker serves the entire site at https://www.hoshimiaki.com/ , including `/mahjong/`.
 
-## Release contract
+## Independent builds
 
-Push tested commits to GitHub. The connected Cloudflare Workers Builds project builds and deploys to the designated Worker. Reuse that Worker for subsequent work. Creating, renaming, replacing, or duplicating Workers requires an explicit user request for an infrastructure change. Local validation uses builds and previews; ordinary maintenance does not use local Cloudflare login or production deployment.
+The blog records the submodule's repository, path and commit. Mahjong sources remain managed in their own Git repository. Astro builds the blog; Vue builds the tool with its own scripts, artwork, About, licenses and matching source archive. Blog components link to the application's URL. See [GPL v3 section 5](https://www.gnu.org/licenses/gpl-3.0.html#section5) for aggregation of independent works.
 
-The existing private blog repository `MichaelFW-ui/musical-waffle-blog-source` deploys separately to `hoshimiaki-blog`. The blog stores the tool's introduction and URL.
+## Application updates
 
-## One-time repository connection
+Use Node.js 22. Run `npm ci`, `npm test`, and `npm run build`. Local development uses `npm run serve` and the printed origin's `/mahjong/` path. Keep `publicPath: '/mahjong/'`.
 
-In Cloudflare, select Compute & AI > Workers & Pages > Create application > Connect GitHub / Import a repository. Choose `MichaelFW-ui/mahjong-vue`. If the designated Worker already exists, open its Settings > Build to connect the repository.
+Commit and push application changes to this repository's `main` before publishing them. The source archive comes from the application's Git commit.
 
-| Setting | Value |
-| --- | --- |
-| Worker name | `hoshimiaki-mahjong` |
-| Production branch | `main` |
-| Root directory | Repository root |
-| Build command | `npm test && npm run build` |
-| Deploy command | `npm run workers:deploy` |
-| Node.js | `NODE_VERSION=22`, also recorded in `.node-version` |
-| Install command, if shown | `npm ci` |
+## Update the blog's pinned revision
 
-Workers Builds manages deployment authentication. After the first successful deployment, append `/mahjong/` to the assigned workers.dev URL for a preview.
+Inside the blog checkout:
 
-## Preserve preferred-edge DNS
+```bash
+git submodule update --init external/mahjong-vue
+git -C external/mahjong-vue fetch origin
+git -C external/mahjong-vue checkout <published-application-commit>
+git add external/mahjong-vue
+pnpm build
+```
 
-Keep the apex and `www` DNS-only CNAME records pointing to `saas.sin.fan`. Domain routes remain dashboard-managed. Both Wrangler configurations intentionally omit `route`, `routes`, and `custom_domain`.
+The blog build uses the recorded revision rather than following a moving branch. It initializes missing submodule content, installs the application's locked dependencies, runs its tests, builds it separately and copies its output into `dist/mahjong/`.
 
-In the mahjong Worker's Settings > Domains & Routes > Add > Route, choose zone `hoshimiaki.com` and add `www.hoshimiaki.com/mahjong/*` and `hoshimiaki.com/mahjong/*`. If prompted, select fail closed.
+Commit the blog's submodule update and push its `main`. The already connected Workers Builds project runs `pnpm check && pnpm test && pnpm build`, then `pnpm run workers:deploy` on `hoshimiaki-blog`.
 
-Keep the blog's existing `www.hoshimiaki.com/*` and `hoshimiaki.com/*` routes assigned to `hoshimiaki-blog`. The more specific mahjong routes take precedence. The existing apex redirect preserves the requested path. The blog handles `/mahjong` -> `/mahjong/`.
+## Hosting contract
 
-## Validation and updates
+Keep the current DNS-only CNAME records to `saas.sin.fan` and whole-site dashboard routes `hoshimiaki.com/*` and `www.hoshimiaki.com/*`. The same Worker serves the blog and `/mahjong/` static directory. Domain configuration and repository connection remain unchanged.
 
-The Vue build uses `publicPath: '/mahjong/'`; Workers serves `dist` with `assets.base_path: '/mahjong'`. These settings keep scripts, tile images, license links and source downloads under the public prefix.
+This application has no separate production Worker or Cloudflare deployment command. Maintenance reuses the existing blog Worker; creating, renaming or replacing production infrastructure requires an explicit user request.
 
-Run `npm ci`, `npm test` and `npm run build`. For a local Workers preview, run `npm run workers:dev` and visit `/mahjong/`. Verify calculation, practice, mistake history, import/export, retry and About. A production build includes the exact Git revision, license texts and `source.tar.gz`.
-
-Push tested changes to `main` and wait for the repository's Workers Builds check. Preserve Worker identity, routes and DNS. Read build logs if publishing fails; confirm the repository connection and project name before changing infrastructure. Update `project-info.json` when merging upstream.
-
-Detailed field-by-field instructions are in [the Chinese guide](DEPLOYMENT_CN.md).
-
-References: [Workers Builds](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/), [routes](https://developers.cloudflare.com/workers/configuration/routing/routes/), [static asset subpaths](https://developers.cloudflare.com/workers/static-assets/routing/advanced/serving-a-subdirectory/), [existing DNS arrangement](https://winston.ink/post/preferential/).
+Verify scoring, practice, history, retry, import/export and About at the public path. The About commit must match the blog's recorded submodule revision. Check GPL and artwork licenses and the corresponding source download.

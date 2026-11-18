@@ -1,16 +1,16 @@
 # Agent Notes
 
 ## Project boundaries
-- This is the public GPL v3 mahjong application, maintained independently from the private blog repository.
-- Preserve the practice history, import/export, and retry functionality when merging upstream.
-- Keep upstream revision information in `project-info.json` accurate. Retain original copyright and third-party licenses.
+- This public GPL v3 application is referenced as a Git submodule by the private blog.
+- Keep its Vue build independent from Astro. The blog copies only the finished application to `dist/mahjong/`.
+- Preserve practice history, import/export, and retry behavior when merging upstream.
+- Keep `project-info.json` accurate. Retain original copyright, third-party licenses, and corresponding-source downloads.
 
 ## Deployment contract
-- Read `docs/DEPLOYMENT_CN.md` before changing deployment settings.
-- Source: `MichaelFW-ui/mahjong-vue`, production branch: `main`.
-- Worker identity: `hoshimiaki-mahjong`; path: `https://www.hoshimiaki.com/mahjong/`.
-- Deploy by pushing GitHub commits. The connected Cloudflare Workers Builds project runs the build and deploy commands.
-- Use the existing connected Worker for all subsequent work. Do not create, rename, replace, or duplicate Workers unless the user explicitly requests that infrastructure change.
-- Do not run local `wrangler login` or production `wrangler deploy` as part of ordinary work. The deploy script is for the Cloudflare build environment. Local `wrangler dev` and `wrangler deploy --dry-run` are validation only.
-- Domain routes are managed in the Cloudflare dashboard; preserve the blog's existing domain and Worker.
-- Keep deployment credentials and local files out of Git. Update both README language versions when changing tooling.
+- Read `docs/DEPLOYMENT_CN.md` before changing deployment behavior.
+- Production uses only the existing `hoshimiaki-blog` Worker, already connected to `MichaelFW-ui/musical-waffle-blog-source`, branch `main`.
+- This repository has no separate production Worker. Do not create one or introduce Cloudflare login or deployment commands.
+- Publish application changes to `MichaelFW-ui/mahjong-vue`, then update and commit the blog's `external/mahjong-vue` submodule revision. Pushing the blog triggers Workers Builds.
+- Keep `publicPath: '/mahjong/'`. The blog's existing whole-site routes serve the application's independent static files at `/mahjong/`.
+- Preserve DNS-only CNAMEs to `saas.sin.fan` and dashboard-managed blog routes. Infrastructure changes require an explicit user request.
+- Keep credentials and local files out of Git. Update both README language versions when changing tooling.

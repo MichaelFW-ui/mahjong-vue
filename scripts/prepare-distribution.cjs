@@ -1,10 +1,14 @@
 const { execFileSync } = require('node:child_process')
-const { copyFileSync, mkdirSync, writeFileSync } = require('node:fs')
+const { copyFileSync, mkdirSync, realpathSync, writeFileSync } = require('node:fs')
 const path = require('node:path')
 const packageInfo = require('../package.json')
 const projectInfo = require('../project-info.json')
 
 const root = path.resolve(__dirname, '..')
+const repositoryRoot = execFileSync('git', ['rev-parse', '--show-toplevel'], { cwd: root, encoding: 'utf8' }).trim()
+if (realpathSync(repositoryRoot) !== realpathSync(root)) {
+  throw new Error('Build mahjong-vue from its own Git checkout or initialized submodule.')
+}
 const publicDirectory = path.join(root, 'public')
 const licenseDirectory = path.join(publicDirectory, 'licenses')
 mkdirSync(licenseDirectory, { recursive: true })
